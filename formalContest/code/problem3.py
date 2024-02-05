@@ -139,7 +139,6 @@ for index, row in data.iterrows():
     data.at[index, 'consecutive_2'] = row['consecutive_2']
     data.at[index, 'consecutive'] = row['consecutive']
 
-
 # print('连续得分情况')
 # for line in data['consecutive'][0:10]:
 #     print(line)
@@ -160,12 +159,28 @@ for index, row in data.iterrows():
 features = data[['score_differential', 'server', 'consecutive', 'critical_point']]
 target = data['momentum_score']
 X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
-model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=4, random_state=42)
 model.fit(X_train, y_train)
 
 predictions = model.predict(X_test)
 # accuracy = accuracy_score(y_test, predictions)
 # print(f"Model Accuracy: {accuracy}")
+
+# # 网格搜索超参数调优,这段代码可以找出最好的参数,对R3M1,学习率0.1 深度4 n_estimator 100时最好
+# from sklearn.model_selection import GridSearchCV
+#
+# param_grid = {
+#     'n_estimators': [50, 100, 200],
+#     'learning_rate': [0.01, 0.05, 0.1],
+#     'max_depth': [3, 4, 5]
+# }
+# model = GradientBoostingRegressor(random_state=42)
+# grid_search = GridSearchCV(model, param_grid, cv=5, scoring='neg_mean_squared_error')
+# grid_search.fit(X_train, y_train)
+# best_params = grid_search.best_params_
+# print(f'最好的参数: {best_params}')
+# best_model = grid_search.best_estimator_
+# prediction_best = best_model.predict(X_test)
 
 # mse方差
 mse = mean_squared_error(y_test, predictions)
@@ -177,13 +192,18 @@ print(f'Root Mean Squared Error: {rmse}')
 
 # 决定系数(目标对变量变化的解释能力,越接近1拟合越好)
 from sklearn.metrics import r2_score
+
 r2 = r2_score(y_test, predictions)
 print(f'R-squared: {r2}')
 
-# 特征重要性图
+# 特征重要性图:哪些特征对预测的贡献最大
 feature_importance = model.feature_importances_
 plt.figure(figsize=(8, 6))
 sns.barplot(x=feature_importance, y=features.columns)
 plt.title('Feature Importance')
+plt.xlabel('importance')
+plt.ylabel('features')
+plt.title('Feature Importance in R3M1')
+plt.savefig('..\\image\\Q3\\R3M1_feature_Importance.jpg')
 plt.show()
-plt.savefig('..\\image\\Q3\\R3M1')
+
